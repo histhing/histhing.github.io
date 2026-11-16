@@ -132,7 +132,7 @@ const QUESTIONS = [
   { ch: 1, q: `다음 코드의 실행 결과는?`, code: `age = 20\nAge = 30\nprint(age)`,
     opts: [`30`, `20`, `50`, `NameError`] },
   { ch: 1, q: `다음 코드의 실행 결과는?`, code: `a = 3\nb = 7\na, b = b, a\nprint(a, b)`,
-    opts: [`3 7`, `7 7`, `3 3`, `7 3`] },
+    opts: [`3 7`, `7 7`, `7 3`, `3 3`] },
 
   { ch: 2, q: `다음 코드의 실행 결과는?`, code: `print(f'{7 // 2} {7 % 2} {2 ** 3}')`,
     opts: [`3.5 1 6`, `3 1 6`, `3 1 8`, `4 1 8`] },
@@ -158,7 +158,7 @@ const QUESTIONS = [
   { ch: 4, q: `다음 코드의 실행 결과는?`, code: `d = {'k': 1}\nprint(list(d.items()))`,
     opts: [`['k', 1]`, `{'k': 1}`, `[['k', 1]]`, `[('k', 1)]`] },
   { ch: 4, q: `다음 코드의 실행 결과는?`, code: `s = {1, 2, 2, 3, 3, 3}\nprint(len(s))`,
-    opts: [`3`, `1`, `6`, `2`] },
+    opts: [`6`, `1`, `3`, `2`] },
   { ch: 4, q: `s = {1, 2}일 때, 실행하면 오류가 발생하는 것은?`,
     opts: [`s.add(1)`, `s.discard(5)`, `print(5 in s)`, `s.remove(5)`], codeOpts: true },
 
