@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI활용기초 쪽지시험</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #1d2330; --muted: #5d6675;
+    --line: #dfe3ea; --accent: #2557d6; --accent-soft: #e8eefc;
+    --ok: #1d7a46; --ok-soft: #e4f4ea; --bad: #b42318; --bad-soft: #fdecea;
+    --code-bg: #f0f2f5; --warn: #9a5b00; --warn-soft: #fff4dc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14171c; --card: #1c2027; --text: #e6e9ef; --muted: #a0a8b6;
+      --line: #2e343e; --accent: #7aa2ff; --accent-soft: #23304d;
+      --ok: #5fd08f; --ok-soft: #173325; --bad: #ff8a80; --bad-soft: #3a1f1d;
+      --code-bg: #12151a; --warn: #ffc56b; --warn-soft: #3a2d14;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+    line-height: 1.6;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 80px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px; margin-bottom: 14px;
+  }
+  .info label { display: block; font-weight: 600; margin-bottom: 6px; }
+  .info input {
+    width: 100%; max-width: 320px; padding: 9px 12px; font-size: 1rem;
+    border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text);
+  }
+  .info ul { margin: 12px 0 0; padding-left: 20px; color: var(--muted); }
+  h2 { font-size: 1.1rem; margin: 28px 0 10px; color: var(--accent); }
+  .q-title { font-weight: 600; margin: 0 0 10px; }
+  .q-title b { color: var(--accent); margin-right: 4px; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 14px; margin: 0 0 12px; overflow-x: auto;
+    font-family: Consolas, "D2Coding", "Courier New", monospace; font-size: 0.95rem;
+  }
+  .opts { display: grid; gap: 8px; }
+  @media (min-width: 560px) { .opts.short { grid-template-columns: 1fr 1fr; } }
+  .opt {
+    display: flex; gap: 10px; align-items: flex-start; padding: 9px 12px;
+    border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
+  }
+  .opt:hover { border-color: var(--accent); }
+  .opt input { margin-top: 5px; accent-color: var(--accent); }
+  .opt code { font-family: Consolas, "D2Coding", monospace; }
+  .opt.picked { background: var(--accent-soft); border-color: var(--accent); }
+  .opt.is-answer { background: var(--ok-soft); border-color: var(--ok); }
+  .opt.is-wrong { background: var(--bad-soft); border-color: var(--bad); }
+  .card.unanswered { border-color: var(--warn); box-shadow: 0 0 0 2px var(--warn-soft); }
+  .feedback { margin-top: 12px; padding: 10px 12px; border-radius: 8px; font-size: 0.95rem; }
+  .feedback.ok { background: var(--ok-soft); color: var(--ok); }
+  .feedback.bad { background: var(--bad-soft); color: var(--bad); }
+  .feedback span { color: var(--text); }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 24px; }
+  button {
+    font: inherit; font-weight: 600; padding: 11px 20px; border-radius: 8px;
+    border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer;
+  }
+  button.ghost { background: transparent; color: var(--accent); }
+  .warn { color: var(--warn); font-weight: 600; }
+  #result { display: none; }
+  #result.show { display: block; border: 2px solid var(--accent); }
+  .score { font-size: 2.2rem; font-weight: 700; margin: 4px 0; }
+  .score small { font-size: 1rem; color: var(--muted); font-weight: 500; }
+  table { border-collapse: collapse; width: 100%; margin-top: 10px; font-size: 0.95rem; }
+  th, td { border-bottom: 1px solid var(--line); padding: 7px 6px; text-align: left; }
+  th { color: var(--muted); font-weight: 600; }
+  td.num { text-align: right; white-space: nowrap; }
+  .who { color: var(--muted); }
+  .hide-correct .card.q.correct { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>AI활용기초 쪽지시험</h1>
+  <p class="sub">20문항 · 4지선다 · 문항당 1점</p>
+
+  <div class="card info">
+    <label for="who">학번·이름</label>
+    <input id="who" type="text" placeholder="예: 2026001 홍길동" autocomplete="off">
+    <ul>
+      <li>각 문항에서 정답을 하나 고르세요.</li>
+      <li>코드는 직접 실행하지 말고 읽어서 답하세요.</li>
+      <li>학번·이름을 꼭 적으세요. 제출은 한 번만 합니다.</li>
+      <li>제출하면 답안이 교수님께 전달되고, 이 화면에 채점 결과와 해설이 나옵니다.</li>
+    </ul>
+  </div>
+
+  <div class="card" id="result" aria-live="polite"></div>
+
+  <div id="quiz"></div>
+
+  <div class="actions">
+    <button id="submit">제출하고 채점하기</button>
+    <button id="toggle" class="ghost" hidden>틀린 문항만 보기</button>
+    <span id="msg" class="warn"></span>
+  </div>
+</main>
+
+<script>
+const CHAPTERS = [
+  "1장 프로그래밍 언어와 파이썬",
+  "2장 변수와 표준 입출력",
+  "3장 자료형과 연산자",
+  "4장 리스트·튜플",
+  "4장 딕셔너리·집합",
+  "5장 조건문"
+];
+
+// 구글 스프레드시트 Apps Script 웹 앱 주소 (배포 후 나온 .../exec 주소를 넣으세요)
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxztLu2SeQGPSwvOn3hZUEwmJ7IhgZydQRM7qBK488ee-NPKfgEoehSCMGplSLqWJTr/exec";
+const QUIZ_ID = "B"; // 2분반: 시트의 '답안2'·'통계2' 탭에 기록됩니다.
+
+// ch: 장 번호(CHAPTERS 순서). 정답과 해설은 스프레드시트 스크립트에만 있습니다.
+const QUESTIONS = [
+  { ch: 0, q: "파이썬의 특징으로 옳지 않은 것은?", opts: ["누구나 무료로 쓸 수 있는 오픈소스이다.", "문법이 간결해 처음 배우는 사람도 익히기 쉽다.", "변수를 쓰기 전에 반드시 자료형을 선언해야 한다.", "데이터 분석·웹 개발 등에 쓰이는 외부 라이브러리가 풍부하다."] },  // A-01
+  { ch: 1, q: "변수명으로 사용할 수 없는 것은?", opts: ["my_name", "_count", "score2", "2nd_score"], codeOpts: true },  // A-06
+  { ch: 1, q: "다음 코드를 실행하고 5를 입력했다. 출력 결과는?", code: "x = input(\"숫자: \")\nprint(x * 2)", opts: ["10", "7", "TypeError", "55"] },  // A-09
+  { ch: 1, q: "키보드로 정수를 입력받아 변수 n에 정수형으로 저장하는 코드는?", opts: ["n = input(int(\"정수: \"))", "n = int(input(\"정수: \"))", "n = input(\"정수: \", int)", "int n = input(\"정수: \")"], codeOpts: true },  // A-11
+  { ch: 2, q: "실행하면 오류가 발생하는 것은?", opts: ["int('35')", "float('3.5')", "int('3.5')", "str(35)"], codeOpts: true },  // A-17
+  { ch: 2, q: "다음 코드의 실행 결과는?", code: "print(2 + 3 * 2 ** 2)", opts: ["20", "14", "100", "38"] },  // A-23
+  { ch: 2, q: "다음 코드의 실행 결과는?", code: "print(len('AI Python'))", opts: ["7", "8", "9", "10"] },  // A-25
+  { ch: 2, q: "다음 코드가 오류 없이 나이: 20을 출력하도록 빈칸에 들어갈 함수는?", code: "age = 20\nprint('나이: ' + ____(age))", opts: ["int", "str", "float", "input"] },  // A-27
+  { ch: 3, q: "다음 코드의 실행 결과는?", code: "a = [10, 20, 30, 40]\nprint(a[-1], len(a))", opts: ["40 4", "40 3", "30 4", "IndexError"] },  // A-29
+  { ch: 3, q: "다음 코드의 실행 결과는?", code: "a = [1, 2, 3]\na.insert(1, 9)\nprint(a)", opts: ["[9, 1, 2, 3]", "[1, 2, 9, 3]", "[1, 9, 3]", "[1, 9, 2, 3]"] },  // A-31
+  { ch: 3, q: "다음 코드의 실행 결과는?", code: "a = [3, 1, 2]\na.sort()\na.reverse()\nprint(a)", opts: ["[1, 2, 3]", "[2, 1, 3]", "[3, 1, 2]", "[3, 2, 1]"] },  // A-34
+  { ch: 3, q: "다음 코드의 실행 결과는?", code: "a, *b = (1, 2, 3, 4)\nprint(b)", opts: ["(2, 3, 4)", "[2, 3, 4]", "2", "ValueError"] },  // A-40
+  { ch: 4, q: "다음 코드의 실행 결과는?", code: "d = {'a': 1}\nprint(d['b'])", opts: ["None", "0", "KeyError", "b"] },  // A-44
+  { ch: 4, q: "다음 코드의 실행 결과는?", code: "d = {'k': 1}\nprint(list(d.items()))", opts: ["['k', 1]", "{'k': 1}", "[['k', 1]]", "[('k', 1)]"] },  // A-47
+  { ch: 4, q: "다음 코드의 실행 결과는?", code: "s = {1, 2, 2, 3, 3, 3}\nprint(len(s))", opts: ["6", "1", "3", "2"] },  // A-49
+  { ch: 4, q: "다음 코드의 실행 결과는?", code: "a = {1, 2, 3}\nb = {3, 4}\nprint(f'{a & b} {a - b}')", opts: ["{3} {4}", "{3} {1, 2}", "{1, 2, 3, 4} {1, 2}", "{3} {1, 2, 4}"] },  // A-50
+  { ch: 5, q: "다음 코드의 실행 결과는?", code: "x = 15\nif x > 10:\n    print('X')\nif x > 5:\n    print('Y')", opts: ["X만 출력된다", "Y만 출력된다", "아무것도 출력되지 않는다", "X와 Y가 두 줄로 출력된다"] },  // A-57
+  { ch: 5, q: "다음 코드의 실행 결과는?", code: "words = {'apple': '사과'}\nw = 'Apple'\nif w in words:\n    print(words[w])\nelse:\n    print('없음')", opts: ["없음", "사과", "Apple", "KeyError"] },  // A-60
+  { ch: 5, q: "다음 코드의 실행 결과는?", code: "score = 95\nattend = 80\nif score >= 90:\n    if attend >= 90:\n        print('장학금')\n    else:\n        print('우수')\nelse:\n    print('일반')", opts: ["장학금", "일반", "장학금과 우수가 모두 출력된다", "우수"] },  // A-61
+  { ch: 5, q: "다음 코드를 실행하고 10을 입력했다. 출력 결과는?", code: "n = input('숫자: ')\nif n == 10:\n    print('같다')\nelse:\n    print('다르다')", opts: ["같다", "오류가 발생한다", "다르다", "아무것도 출력되지 않는다"] }   // A-65
+];
+
+const MARKS = ["①", "②", "③", "④"];
+const quizEl = document.getElementById("quiz");
+const resultEl = document.getElementById("result");
+const msgEl = document.getElementById("msg");
+const submitBtn = document.getElementById("submit");
+const toggleBtn = document.getElementById("toggle");
+let warned = false;
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function build() {
+  quizEl.innerHTML = "";
+  let lastCh = -1;
+  QUESTIONS.forEach((item, i) => {
+    if (item.ch !== lastCh) {
+      quizEl.appendChild(el("h2", "", CHAPTERS[item.ch]));
+      lastCh = item.ch;
+    }
+    const card = el("div", "card q");
+    card.id = "q" + i;
+    const title = el("p", "q-title");
+    title.appendChild(el("b", "", (i + 1) + "."));
+    title.appendChild(document.createTextNode(item.q));
+    card.appendChild(title);
+    if (item.code) card.appendChild(el("pre", "", item.code));
+
+    const isShort = item.opts.every(o => o.length <= 14);
+    const opts = el("div", "opts" + (isShort ? " short" : ""));
+    item.opts.forEach((text, j) => {
+      const label = el("label", "opt");
+      const input = document.createElement("input");
+      input.type = "radio"; input.name = "q" + i; input.value = j;
+      input.addEventListener("change", () => {
+        opts.querySelectorAll(".opt").forEach(o => o.classList.remove("picked"));
+        label.classList.add("picked");
+        card.classList.remove("unanswered");
+      });
+      label.appendChild(input);
+      const body = el("span");
+      body.appendChild(document.createTextNode(MARKS[j] + " "));
+      body.appendChild(item.codeOpts ? el("code", "", text) : document.createTextNode(text));
+      label.appendChild(body);
+      opts.appendChild(label);
+    });
+    card.appendChild(opts);
+    quizEl.appendChild(card);
+  });
+}
+
+function picked(i) {
+  const c = document.querySelector('input[name="q' + i + '"]:checked');
+  return c ? Number(c.value) : null;
+}
+
+async function submitAnswers() {
+  const whoEl = document.getElementById("who");
+  const who = whoEl.value.trim();
+  document.querySelectorAll(".card.q").forEach(c => c.classList.remove("unanswered"));
+  if (!who) {
+    msgEl.textContent = "학번·이름을 먼저 적어 주세요.";
+    whoEl.focus();
+    whoEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+  const missing = QUESTIONS.map((_, i) => i).filter(i => picked(i) === null);
+  if (missing.length && !warned) {
+    missing.forEach(i => document.getElementById("q" + i).classList.add("unanswered"));
+    msgEl.textContent = "풀지 않은 문항이 " + missing.length + "개 있습니다. 그대로 제출하려면 한 번 더 누르세요.";
+    submitBtn.textContent = "그대로 제출하기";
+    warned = true;
+    document.getElementById("q" + missing[0]).scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  const answers = QUESTIONS.map((_, i) => picked(i));
+  setLocked(true);
+  submitBtn.disabled = true;
+  submitBtn.textContent = "채점 중…";
+  msgEl.textContent = "";
+
+  let data;
+  try {
+    if (!/^https:\/\/script\.google\.com\//.test(SCRIPT_URL)) throw new Error("채점 주소가 설정되지 않았습니다.");
+    // text/plain으로 보내야 브라우저가 사전 확인 요청 없이 바로 보냅니다.
+    const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ quiz: QUIZ_ID, who, answers }) });
+    data = await res.json();
+    if (!data.ok) throw new Error(data.error || "채점하지 못했습니다.");
+  } catch (err) {
+    setLocked(false);
+    submitBtn.disabled = false;
+    submitBtn.textContent = "다시 제출하기";
+    msgEl.textContent = "제출하지 못했습니다. 인터넷 연결을 확인하고 다시 제출해 주세요. (" + err.message + ")";
+    return;
+  }
+
+  QUESTIONS.forEach((item, i) => {
+    const card = document.getElementById("q" + i);
+    const r = data.results[i];
+    const choice = answers[i];
+    card.classList.add(r.right ? "correct" : "wrong");
+    const labels = card.querySelectorAll(".opt");
+    labels[r.ans].classList.add("is-answer");
+    if (choice !== null && !r.right) labels[choice].classList.add("is-wrong");
+    const fb = el("div", "feedback " + (r.right ? "ok" : "bad"));
+    const head = r.right ? "정답" : (choice === null ? "풀지 않음 · 정답 " + MARKS[r.ans] : "오답 · 정답 " + MARKS[r.ans]);
+    fb.appendChild(el("strong", "", head + "  "));
+    fb.appendChild(el("span", "", r.why));
+    card.appendChild(fb);
+  });
+
+  showResult(who, data.score, data.total, data.perCh);
+  submitBtn.hidden = true;
+  toggleBtn.hidden = data.score === data.total;
+}
+
+function setLocked(on) {
+  document.getElementById("who").disabled = on;
+  document.querySelectorAll("#quiz input").forEach(inp => inp.disabled = on);
+}
+
+function showResult(who, score, total, perCh) {
+  resultEl.innerHTML = "";
+  const stamp = new Date().toLocaleString("ko-KR", { dateStyle: "medium", timeStyle: "short" });
+  resultEl.appendChild(el("p", "who", who + " · 제출 시각 " + stamp + " · 제출 완료"));
+  const s = el("p", "score", score + " ");
+  s.appendChild(el("small", "", "/ " + total + "점 (" + Math.round(score / total * 100) + "%)"));
+  resultEl.appendChild(s);
+
+  const table = el("table");
+  const thead = el("tr");
+  ["장", "맞힌 문항"].forEach(h => thead.appendChild(el("th", "", h)));
+  table.appendChild(thead);
+  perCh.forEach((p, k) => {
+    const tr = el("tr");
+    tr.appendChild(el("td", "", CHAPTERS[k]));
+    tr.appendChild(el("td", "num", p.ok + " / " + p.total));
+    table.appendChild(tr);
+  });
+  resultEl.appendChild(table);
+  resultEl.classList.add("show");
+  resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+submitBtn.addEventListener("click", submitAnswers);
+toggleBtn.addEventListener("click", () => {
+  const on = document.body.classList.toggle("hide-correct");
+  toggleBtn.textContent = on ? "모든 문항 보기" : "틀린 문항만 보기";
+});
+
+build();
+</script>
+</body>
+</html>
